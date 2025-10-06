@@ -1,66 +1,233 @@
-### Test Echo-Service
-GET localhost:10001/echo
+@host = localhost
+@port = 10001
+@base = http://{{host}}:{{port}}
+
+### Healthcheck [PASS erwartet]
+GET {{base}}/api/health
+Accept: application/json
+
+> {%
+    client.test("Health returns 200", () => client.assert(response.status === 200));
+    const data = JSON.parse(response.body || "{}");
+    client.test("Health JSON has status:ok", () => client.assert(data.status === "ok"));
+%}
+
+### CORS Preflight für /api/posts [PASS erwartet]
+OPTIONS {{base}}/api/posts
+Origin: http://example.com
+Access-Control-Request-Method: POST
+Access-Control-Request-Headers: Content-Type
+
+> {% client.test("Preflight returns 204 No Content", () => client.assert(response.status === 204)); %}
+
+### Users – Alle Benutzer holen [PASS erwartet]
+GET {{base}}/api/users
+Accept: application/json
+
+> {%
+    client.test("Users returns 200 and array", () => {
+        client.assert(response.status === 200);
+        const arr = JSON.parse(response.body || "[]");
+        client.assert(Array.isArray(arr), "Expected array of users");
+    });
+%}
+
+### Users Create user (sauber) [PASS erwartet]
+POST {{base}}/api/users
+Content-Type: application/json
+Accept: application/json
+
+{
+  "username": "testuser1",
+  "email": "testuser1@example.com",
+  "password": "pw123"
+}
+
+> {%
+    client.test("Create user returns 201", () => client.assert(response.status === 201));
+    const obj = JSON.parse(response.body || "{}");
+    client.global.set("created_user", obj.username || "testuser1");
+%}
+
+### Users DUPLICATE create (sollte 409 liefern) [PASS in sicherer App / FAIL in aktueller App möglich]
+POST {{base}}/api/users
+Content-Type: application/json
+Accept: application/json
+
+{
+  "username": "testuser1",
+  "email": "dupe@example.com",
+  "password": "pw999"
+}
+
+> {%
+    client.test("Duplicate user is NOT created (status not 2xx)", () => {
+        client.assert(!(response.status >= 200 && response.status < 300), "Should not be 2xx");
+    });
+%}
+
+### Login – erfolgreicher Login via Email [PASS erwartet]
+POST {{base}}/api/login
+Content-Type: application/json
+Accept: application/json
+
+{
+  "email": "alice@example.com",
+  "password": "alice123"
+}
+
+> {%
+    client.test("Login 200", () => client.assert(response.status === 200));
+    const o = JSON.parse(response.body || "{}");
+    client.test("Token present", () => client.assert(!!o.token, "token missing"));
+    client.global.set("token", o.token || "dummy-token");
+    client.global.set("username", o.username || "alice");
+%}
+
+### Login SQLi Versuch (klassisch) [PASS erwartet]
+POST {{base}}/api/login
+Content-Type: application/json
+Accept: application/json
+
+{
+  "email": "admin@example.com' OR '1'='1",
+  "password": "wrong"
+}
+
+> {%
+    client.test("SQLi in login gets 401", () => client.assert(response.status === 401));
+%}
+
+### Login SQLi über username-Feld [PASS erwartet]
+POST {{base}}/api/login
+Content-Type: application/json
+Accept: application/json
+
+{
+  "username": "admin' OR '1'='1",
+  "password": "wrong"
+}
+
+> {%
+    client.test("SQLi via username also 401", () => client.assert(response.status === 401));
+%}
+
+### Posts Liste holen [PASS erwartet]
+GET {{base}}/api/posts
+Accept: application/json
+
+> {%
+    client.test("Posts returns 200 array", () => {
+        client.assert(response.status === 200);
+        const arr = JSON.parse(response.body || "[]");
+        client.assert(Array.isArray(arr), "Expected array");
+    });
+%}
+
+### Posts Create (nur Text) [PASS erwartet]
+POST {{base}}/api/posts
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer {{token}}
+
+{
+  "content": "Security test post (text only)",
+  "authorUsername": "{{username}}"
+}
+
+> {%
+    client.test("Create post 201", () => client.assert(response.status === 201));
+    const created = JSON.parse(response.body || "{}");
+    client.global.set("post_id_text", created.id || 0);
+%}
+
+### Posts Create (mit Datei, Base64) [PASS erwartet]
+POST {{base}}/api/posts
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer {{token}}
+
+{
+  "content": "Security test post (with image)",
+  "authorUsername": "{{username}}",
+  "fileName": "tiny.png",
+  "fileBase64": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGNgYGD4DwABBAEAz9gkKQAAAABJRU5ErkJggg=="
+}
+
+> {%
+    client.test("Create post with file 201", () => client.assert(response.status === 201));
+    const created = JSON.parse(response.body || "{}");
+    client.global.set("post_id_file", created.id || 0);
+%}
+
+### Posts SQLi-Versuch via Content (sollte NICHT als SQL laufen) [PASS erwartet]
+POST {{base}}/api/posts
+Content-Type: application/json
+Accept: application/json
+
+{
+  "content": "nice'); INSERT INTO users (username,email,password,is_admin) VALUES ('hacker','hacker@evil.com','hacked',true); --",
+  "authorUsername": "{{username}}"
+}
+
+> {%
+    client.test("Post with 'SQLi-like' content accepted but not executed", () => client.assert(response.status === 201));
+%}
+
+### Kontrolle: Kein 'hacker' User angelegt [PASS erwartet]
+GET {{base}}/api/users
+Accept: application/json
+
+> {%
+    const arr = JSON.parse(response.body || "[]");
+    const found = arr.some(u => u.username === "hacker");
+    client.test("No 'hacker' user present", () => client.assert(!found, "Danger: 'hacker' user exists!"));
+%}
+
+
+### Unbekannter Pfad -> 404 [PASS erwartet]
+GET {{base}}/
+Accept: application/json
+
+> {%
+    client.test("Unknown path 404", () => client.assert(response.status === 404));
+%}
+
+### Methode nicht erlaubt/implementiert -> 501 [PASS erwartet]
+PUT {{base}}/api/users
+Content-Type: application/json
+
+{}
+
+> {%
+    client.test("PUT /api/users not implemented", () => client.assert(response.status === 501));
+%}
+
+### Falscher Content-Type (secure: 400; aktuell evtl. 500) [PASS in sicherer App / FAIL in aktueller App möglich]
+POST {{base}}/api/users
 Content-Type: text/plain
+Accept: application/json
 
-Hello World!
+{"username":"ctbad","email":"c@t","password":"x"}
 
+> {%
+    client.test("Wrong Content-Type rejected (not 2xx)", () => {
+        client.assert(!(response.status >= 200 && response.status < 300), "Should not be 2xx");
+    });
+%}
 
-### Test User-Service - get all users
-GET localhost:10001/users
+### CORS-Header auf JSON-Response [PASS erwartet]
+GET {{base}}/api/users
+Accept: application/json
 
-### Test User-Service - get user by username
-GET localhost:10001/users/alice
-
-### Test User-Service - SQL Injection
-GET localhost:10001/users/alice' OR '1'='1
-
-### Test User-Service - SQL Injection with INSERT
-GET localhost:10001/users/alice'; INSERT INTO users (username, email, password, is_admin) VALUES ('hacker', 'hacker@evil.com', 'hacked', true); --
-
-### Test User-Service - Create user
-POST localhost:10001/users
-Content-Type: application/json
-
-{"username": "newuser", "email": "new@test.com", "password": "test123"}
-
-### Test User-Service - Update user
-PUT localhost:10001/users/alice
-
-### Test User-Service - Delete user
-DELETE localhost:10001/users/alice
-
-### Test Post-Service - get all posts
-GET localhost:10001/posts
-
-### Test Post-Service - get post by id
-GET localhost:10001/posts/1
-
-### Test Post-Service - get posts by author
-GET localhost:10001/posts/author/alice
-
-### Test Post-Service - SQL Injection on post id
-GET localhost:10001/posts/1' OR '1'='1
-
-### Test Post-Service - SQL Injection on author
-GET localhost:10001/posts/author/alice' OR '1'='1
-
-### Test Post-Service - SQL Injection with INSERT (create malicious post)
-GET localhost:10001/posts/1'; INSERT INTO posts (content, author_username) VALUES ('<script>alert("XSS")</script>', 'hacker'); --
-
-### Test Post-Service - SQL Injection to read users table
-GET localhost:10001/posts/1' UNION SELECT 1, username, email, password, 1, NULL, 1 FROM users; --
-
-### Test Post-Service - Create post
-POST localhost:10001/posts
-Content-Type: application/json
-
-{"content": "New test post", "author_username": "alice"}
-
-### Test Post-Service - Update post
-PUT localhost:10001/posts/1
-
-### Test Post-Service - Update post likes
-PUT localhost:10001/posts/1/likes
-
-### Test Post-Service - Delete post
-DELETE localhost:10001/posts/2
+> {%
+    client.test("CORS header present", () => {
+        const v = response.headers.valueOf("Access-Control-Allow-Origin");
+        client.assert(!!v, "Missing ACAO header");
+        client.assert(v === "*", "ACAO should be * in current server");
+    });
+    client.test("JSON Content-Type present", () => {
+        const ct = response.headers.valueOf("Content-Type") || "";
+        client.assert(ct.includes("application/json"), "Content-Type should be application/json");
+    });
+%}

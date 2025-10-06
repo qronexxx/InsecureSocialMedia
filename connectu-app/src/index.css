@@ -5,13 +5,9 @@
 @theme {
   --color-primary: #19e6a2;
   --color-background-light: #f6f8f7;
-/*  --color-background-dark: #11211c; */
   --color-foreground-light: #0e1b17;
-  /* --color-foreground-dark: #e8f3ee; */
   --color-subtle-light: #d0e7df;
-  /* --color-subtle-dark: #2a3f39; */
   --color-accent-light: #4e977f;
-  /* --color-accent-dark: #85c9b6; */
   
   --font-family-display: "Be Vietnam Pro", sans-serif;
   

@@ -1,9 +1,11 @@
 package at.fhtw.restserver.server;
 
-import at.fhtw.sampleapp.service.PostService;
-import at.fhtw.sampleapp.service.UserService;
-import at.fhtw.sampleapp.service.echo.EchoService;
-import at.fhtw.sampleapp.service.weather.WeatherService;
+import at.fhtw.restserver.http.ContentType;
+import at.fhtw.restserver.http.HttpStatus;
+import at.fhtw.restserver.server.handlers.LoginHandler;
+import at.fhtw.restserver.server.handlers.PostsHandler;
+import at.fhtw.restserver.server.handlers.UsersHandler;
+import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 
 import java.io.IOException;
@@ -13,10 +15,27 @@ public class Server {
     public void start() throws IOException {
         HttpServer server = HttpServer.create(new InetSocketAddress(10001), 10);
 
-        server.createContext("/weather", new WeatherService());
-        server.createContext("/echo", new EchoService());
-        server.createContext("/users", new UserService());
-        server.createContext("/posts", new PostService());
+        server.createContext("/api/health", exchange -> {
+            if ("OPTIONS".equalsIgnoreCase(exchange.getRequestMethod())) {
+                Response.sendNoContent(exchange);
+                return;
+            }
+            String ok = "{\"status\":\"ok\"}";
+            new Response(HttpStatus.OK, ContentType.JSON, ok).send(exchange);
+        });
+
+        server.createContext("/api/users", new UsersHandler());
+        server.createContext("/api/login", new LoginHandler());
+        server.createContext("/api/posts", new PostsHandler());
+
+        server.createContext("/", (HttpExchange ex) -> {
+            if ("OPTIONS".equalsIgnoreCase(ex.getRequestMethod())) {
+                Response.sendNoContent(ex);
+                return;
+            }
+            String msg = "{\"error\":\"Not Found\"}";
+            new Response(HttpStatus.NOT_FOUND, ContentType.JSON, msg).send(ex);
+        });
 
         server.start();
     }

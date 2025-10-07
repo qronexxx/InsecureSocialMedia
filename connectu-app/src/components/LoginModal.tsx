@@ -64,7 +64,6 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
                                 className="w-full bg-background-light border border-subtle-light text-foreground-light placeholder:text-accent-light rounded-lg h-12 px-4 focus:ring-2 focus:ring-primary/50 focus:border-primary transition-shadow"
                                 id="email"
                                 placeholder="du@beispiel.at"
-                                type="email"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 required

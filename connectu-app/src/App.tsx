@@ -6,6 +6,7 @@ import ExplorePage from './pages/ExplorePage.tsx'
 import UploadPage from './pages/UploadPage.tsx'
 import SavedPage from './pages/SavedPage.tsx'
 import { useAuth } from './auth/AuthContext'
+import AdminPage from './pages/AdminPage.tsx'
 
 const App: React.FC = () => {
     const { isAuthenticated, username, logout } = useAuth()
@@ -42,6 +43,10 @@ const App: React.FC = () => {
                                 <Link className="text-sm font-medium hover:text-primary transition-colors" to="/">Startseite</Link>
                                 <Link className="text-sm font-medium hover:text-primary transition-colors" to="/explore">Beiträge</Link>
                                 <Link className="text-sm font-medium hover:text-primary transition-colors" to="/upload">Hochladen</Link>
+                                {!(username?.toLowerCase().includes('admin')) && (
+                                    <style>{`a[href="/admin"] { display: none !important; }`}</style>
+                                )}
+                                <Link className="text-sm font-medium hover:text-primary transition-colors" to="/admin">Admin</Link>
                                 {isAuthenticated && (
                                     <Link className="text-sm font-medium hover:text-primary transition-colors" to="/saved">Gespeichert</Link>
                                 )}
@@ -88,6 +93,7 @@ const App: React.FC = () => {
                         <Route path="/upload" element={isAuthenticated ? <UploadPage /> : <Navigate to="/" replace state={{ showLogin: true }} />} />
                         <Route path="/saved" element={isAuthenticated ? <SavedPage /> : <Navigate to="/" replace state={{ showLogin: true }} />} />
                         <Route path="/ueber" element={<UeberPage />} />
+                        <Route path="/admin" element={<AdminPage />} />
                     </Routes>
                 </main>
 

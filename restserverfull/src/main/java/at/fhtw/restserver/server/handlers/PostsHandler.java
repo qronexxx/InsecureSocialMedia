@@ -80,8 +80,8 @@ public class PostsHandler implements HttpHandler {
         String base = "SELECT p.id, p.content, p.likes_count, p.file_data, p.file_name, p.posted_on, p.author_username, " +
                 "(SELECT COUNT(*) FROM comments c WHERE c.post_id = p.id) AS comment_count";
         if (username != null && !username.isEmpty()) {
-            base += ", EXISTS (SELECT 1 FROM likes l WHERE l.post_id = p.id AND l.username = " + S(username) + ") AS liked";
-            base += ", EXISTS (SELECT 1 FROM bookmarks b WHERE b.post_id = p.id AND b.username = " + S(username) + ") AS bookmarked";
+            base += ", EXISTS (SELECT FROM likes l WHERE l.post_id = p.id AND l.username = " + S(username) + ") AS liked";
+            base += ", EXISTS (SELECT FROM bookmarks b WHERE b.post_id = p.id AND b.username = " + S(username) + ") AS bookmarked";
         }
         String sql = base + " FROM posts p ORDER BY posted_on DESC LIMIT 100";
 
@@ -214,7 +214,7 @@ public class PostsHandler implements HttpHandler {
         String username = o.get("username").getAsString();
 
         try (Connection c = Database.get(); Statement st = c.createStatement()) {
-            String existsSql = "SELECT 1 FROM bookmarks WHERE post_id = " + postId + " AND username = " + S(username) + " LIMIT 1";
+            String existsSql = "SELECT FROM bookmarks WHERE post_id = " + postId + " AND username = " + S(username);
             boolean exists;
             try (ResultSet rs = st.executeQuery(existsSql)) { exists = rs.next(); }
             if (exists) {

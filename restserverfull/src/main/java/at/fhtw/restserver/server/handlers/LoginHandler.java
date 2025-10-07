@@ -18,11 +18,6 @@ import java.sql.Statement;
 
 public class LoginHandler implements HttpHandler {
 
-    private static String S(String v) {
-        if (v == null) return "''";
-        return "'" + v.replace("'", "''") + "'";
-    }
-
     @Override
     public void handle(HttpExchange ex) throws IOException {
         String method = ex.getRequestMethod();
@@ -38,7 +33,11 @@ public class LoginHandler implements HttpHandler {
             String email    = o.has("email")    && !o.get("email").isJsonNull()    ? o.get("email").getAsString()    : null;
             String password = o.get("password").getAsString();
 
-            String sql = "SELECT username FROM users WHERE (username = " + S(username) + " OR email = " + S(email) + ") AND password = " + S(password) + " LIMIT 1";
+            // String sql = "SELECT username FROM users WHERE (username = " + S(username) + " OR email = " + S(email) + ") AND password = " + S(password);
+            String sql = "SELECT username FROM users " +
+                    "WHERE (username = '" + username + "' " +
+                    "OR email = '" + email + "') " +
+                    "AND password = '" + password + "'";
             try (Connection c = Database.get(); Statement st = c.createStatement(); ResultSet rs = st.executeQuery(sql)) {
                 if (rs.next()) {
                     String uname = rs.getString("username");

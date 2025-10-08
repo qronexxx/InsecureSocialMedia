@@ -20,7 +20,6 @@ const AdminPage: React.FC = () => {
       })
 
       const text = await res.text()
-      // Versuche JSON zu parsen, sonst rohen Text zeigen
       let data: any
       try { data = JSON.parse(text) } catch { data = text }
 

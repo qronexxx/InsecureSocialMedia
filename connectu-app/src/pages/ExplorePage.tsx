@@ -25,7 +25,6 @@ type Post = {
 type Comment = { id: number; username: string; content: string; createdAt?: string }
 
 function base64ToString(b64: string): string {
-  // Achtung: atob ist Latin-1; für UTF‑8 reicht es hier meist
   return atob(b64)
 }
 
@@ -39,7 +38,6 @@ function executeScripts(container: HTMLElement) {
         if (script.async) newScript.async = true;
         if (script.defer) newScript.defer = true;
 
-        // Entferne das alte Script und füge das neue hinzu
         script.parentNode?.replaceChild(newScript, script);
     });
 }
@@ -57,7 +55,6 @@ const PostCard: React.FC<{
 }> = ({ post, onLike, onBookmark, onCommentSubmit, onToggleComments, canInteract, commentsOpen, comments, commentsLoading }) => {
     const [comment, setComment] = useState('')
 
-    // Immer als PNG data URL darstellen, wenn Base64 vorhanden ist
 
 
     const contentRef = useRef<HTMLDivElement>(null);
@@ -120,7 +117,7 @@ const PostCard: React.FC<{
             ) : null}
 
             <div className="p-4">
-                {/* Vorher: <p ... dangerouslySetInnerHTML={{ __html: post.text }}></p> */}
+                {}
                 <div
                     ref={contentRef}
                     className="mb-4 text-sm text-gray-800"

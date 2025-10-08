@@ -2,7 +2,6 @@
 @port = 10001
 @base = http://{{host}}:{{port}}
 
-### Healthcheck [PASS erwartet]
 GET {{base}}/api/health
 Accept: application/json
 
@@ -12,7 +11,7 @@ Accept: application/json
     client.test("Health JSON has status:ok", () => client.assert(data.status === "ok"));
 %}
 
-### CORS Preflight für /api/posts [PASS erwartet]
+###
 OPTIONS {{base}}/api/posts
 Origin: http://example.com
 Access-Control-Request-Method: POST
@@ -20,7 +19,7 @@ Access-Control-Request-Headers: Content-Type
 
 > {% client.test("Preflight returns 204 No Content", () => client.assert(response.status === 204)); %}
 
-### Users – Alle Benutzer holen [PASS erwartet]
+###
 GET {{base}}/api/users
 Accept: application/json
 
@@ -32,7 +31,7 @@ Accept: application/json
     });
 %}
 
-### Users Create user (sauber) [PASS erwartet]
+###
 POST {{base}}/api/users
 Content-Type: application/json
 Accept: application/json
@@ -49,7 +48,7 @@ Accept: application/json
     client.global.set("created_user", obj.username || "testuser1");
 %}
 
-### Users DUPLICATE create (sollte 409 liefern) [PASS in sicherer App / FAIL in aktueller App möglich]
+###
 POST {{base}}/api/users
 Content-Type: application/json
 Accept: application/json
@@ -66,7 +65,7 @@ Accept: application/json
     });
 %}
 
-### Login – erfolgreicher Login via Email [PASS erwartet]
+###
 POST {{base}}/api/login
 Content-Type: application/json
 Accept: application/json
@@ -84,7 +83,7 @@ Accept: application/json
     client.global.set("username", o.username || "alice");
 %}
 
-### Login SQLi Versuch (klassisch) [PASS erwartet]
+###
 POST {{base}}/api/login
 Content-Type: application/json
 Accept: application/json
@@ -98,7 +97,7 @@ Accept: application/json
     client.test("SQLi in login gets 401", () => client.assert(response.status === 401));
 %}
 
-### Login SQLi über username-Feld [PASS erwartet]
+###
 POST {{base}}/api/login
 Content-Type: application/json
 Accept: application/json
@@ -112,7 +111,7 @@ Accept: application/json
     client.test("SQLi via username also 401", () => client.assert(response.status === 401));
 %}
 
-### Posts Liste holen [PASS erwartet]
+###
 GET {{base}}/api/posts
 Accept: application/json
 
@@ -124,7 +123,7 @@ Accept: application/json
     });
 %}
 
-### Posts Create (nur Text) [PASS erwartet]
+###
 POST {{base}}/api/posts
 Content-Type: application/json
 Accept: application/json
@@ -141,7 +140,7 @@ Authorization: Bearer {{token}}
     client.global.set("post_id_text", created.id || 0);
 %}
 
-### Posts Create (mit Datei, Base64) [PASS erwartet]
+###
 POST {{base}}/api/posts
 Content-Type: application/json
 Accept: application/json
@@ -160,7 +159,7 @@ Authorization: Bearer {{token}}
     client.global.set("post_id_file", created.id || 0);
 %}
 
-### Posts SQLi-Versuch via Content (sollte NICHT als SQL laufen) [PASS erwartet]
+###
 POST {{base}}/api/posts
 Content-Type: application/json
 Accept: application/json
@@ -174,7 +173,7 @@ Accept: application/json
     client.test("Post with 'SQLi-like' content accepted but not executed", () => client.assert(response.status === 201));
 %}
 
-### Kontrolle: Kein 'hacker' User angelegt [PASS erwartet]
+###
 GET {{base}}/api/users
 Accept: application/json
 
@@ -185,7 +184,7 @@ Accept: application/json
 %}
 
 
-### Unbekannter Pfad -> 404 [PASS erwartet]
+###
 GET {{base}}/
 Accept: application/json
 
@@ -193,7 +192,7 @@ Accept: application/json
     client.test("Unknown path 404", () => client.assert(response.status === 404));
 %}
 
-### Methode nicht erlaubt/implementiert -> 501 [PASS erwartet]
+###
 PUT {{base}}/api/users
 Content-Type: application/json
 
@@ -203,7 +202,7 @@ Content-Type: application/json
     client.test("PUT /api/users not implemented", () => client.assert(response.status === 501));
 %}
 
-### Falscher Content-Type (secure: 400; aktuell evtl. 500) [PASS in sicherer App / FAIL in aktueller App möglich]
+###
 POST {{base}}/api/users
 Content-Type: text/plain
 Accept: application/json
@@ -216,7 +215,7 @@ Accept: application/json
     });
 %}
 
-### CORS-Header auf JSON-Response [PASS erwartet]
+###
 GET {{base}}/api/usersa
 Accept: application/json
 

@@ -81,7 +81,7 @@ const PostCard: React.FC<{
             {dataUrl && <img alt="Bild zum Post" className="aspect-video w-full object-cover" src={dataUrl} />}
 
             <div className="p-4">
-                <p className="mb-4 text-sm text-gray-800 ">{post.text}</p>
+                <p className="mb-4 text-sm text-gray-800 " dangerouslySetInnerHTML={{ __html: post.text }}></p>
 
                 <div className="flex items-center justify-between text-gray-600">
                     <div className="flex items-center gap-4">
@@ -124,7 +124,7 @@ const PostCard: React.FC<{
                             {comments.map((c) => (
                                 <li key={c.id} className="text-sm">
                                     <span className="font-semibold">{c.username}</span>{' '}
-                                    <span className="text-gray-700">{c.content}</span>
+                                    <span className="text-gray-700" dangerouslySetInnerHTML={{ __html: c.content }}></span>
                                     {c.createdAt && <span className="text-gray-400 text-xs"> · {new Date(c.createdAt).toLocaleString()}</span>}
                                 </li>
                             ))}

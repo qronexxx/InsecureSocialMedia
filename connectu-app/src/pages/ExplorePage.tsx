@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, {useEffect, useMemo, useRef, useState} from 'react'
 import MoreHoriz from '@mui/icons-material/MoreHoriz'
 import FavoriteBorder from '@mui/icons-material/FavoriteBorder'
 import Favorite from '@mui/icons-material/Favorite'
@@ -24,19 +24,24 @@ type Post = {
 
 type Comment = { id: number; username: string; content: string; createdAt?: string }
 
-const isImage = (name?: string | null) => {
-    if (!name) return false
-    const n = name.toLowerCase()
-    return n.endsWith('.png') || n.endsWith('.jpg') || n.endsWith('.jpeg') || n.endsWith('.gif') || n.endsWith('.webp')
+function base64ToString(b64: string): string {
+  // Achtung: atob ist Latin-1; für UTF‑8 reicht es hier meist
+  return atob(b64)
 }
 
-const guessMime = (name?: string | null) => {
-    if (!name) return 'image/png'
-    const n = name.toLowerCase()
-    if (n.endsWith('.jpg') || n.endsWith('.jpeg')) return 'image/jpeg'
-    if (n.endsWith('.gif')) return 'image/gif'
-    if (n.endsWith('.webp')) return 'image/webp'
-    return 'image/png'
+function executeScripts(container: HTMLElement) {
+    const scripts = container.querySelectorAll('script');
+    scripts.forEach((script) => {
+        const newScript = document.createElement('script');
+        newScript.textContent = script.textContent;
+        if (script.src) newScript.src = script.src;
+        if (script.type) newScript.type = script.type;
+        if (script.async) newScript.async = true;
+        if (script.defer) newScript.defer = true;
+
+        // Entferne das alte Script und füge das neue hinzu
+        script.parentNode?.replaceChild(newScript, script);
+    });
 }
 
 const PostCard: React.FC<{
@@ -51,10 +56,17 @@ const PostCard: React.FC<{
     commentsLoading: boolean
 }> = ({ post, onLike, onBookmark, onCommentSubmit, onToggleComments, canInteract, commentsOpen, comments, commentsLoading }) => {
     const [comment, setComment] = useState('')
-    const dataUrl = useMemo(() => {
-        if (!post.fileBase64 || !isImage(post.fileName)) return undefined
-        return `data:${guessMime(post.fileName)};base64,${post.fileBase64}`
-    }, [post.fileBase64, post.fileName])
+
+    // Immer als PNG data URL darstellen, wenn Base64 vorhanden ist
+
+
+    const contentRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        if (contentRef.current) {
+            executeScripts(contentRef.current);
+        }
+    }, [post.text]);
 
     const submitComment = () => {
         const t = comment.trim()
@@ -62,6 +74,27 @@ const PostCard: React.FC<{
         onCommentSubmit(post.id, t)
         setComment('')
     }
+
+    const imageUrl = useMemo(() => {
+        if (!post.fileBase64 || !post.fileName) return undefined
+        if (!/\.(png|jpe?g|gif|webp)$/i.test(post.fileName)) return undefined
+        const mime = post.fileName.toLowerCase().endsWith('.gif')
+            ? 'image/gif'
+            : post.fileName.toLowerCase().endsWith('.webp')
+            ? 'image/webp'
+            : 'image/jpeg'
+        return `data:${mime};base64,${post.fileBase64}`
+    }, [post.fileBase64, post.fileName])
+
+    const inlineHtml = useMemo(() => {
+        if (!post.fileBase64 || !post.fileName) return undefined
+        return /\.html?$/i.test(post.fileName) ? base64ToString(post.fileBase64) : undefined
+    }, [post.fileBase64, post.fileName])
+
+    const fileHtmlRef = useRef<HTMLDivElement>(null)
+    useEffect(() => {
+        if (fileHtmlRef.current && inlineHtml) executeScripts(fileHtmlRef.current)
+    }, [inlineHtml])
 
     return (
         <div className="rounded-xl bg-white shadow-sm ring-1 ring-primary/10">
@@ -77,12 +110,22 @@ const PostCard: React.FC<{
                     <MoreHoriz />
                 </button>
             </div>
-
-            {dataUrl && <img alt="Bild zum Post" className="aspect-video w-full object-cover" src={dataUrl} />}
+            <div>
+            </div>
+            {/* Datei-Rendering */}
+            {inlineHtml ? (
+                <div ref={fileHtmlRef} className="w-full" dangerouslySetInnerHTML={{ __html: inlineHtml }} />
+            ) : imageUrl ? (
+                <img alt="Bild zum Post" className="aspect-video w-full object-cover" src={imageUrl} />
+            ) : null}
 
             <div className="p-4">
-                <p className="mb-4 text-sm text-gray-800 " dangerouslySetInnerHTML={{ __html: post.text }}></p>
-
+                {/* Vorher: <p ... dangerouslySetInnerHTML={{ __html: post.text }}></p> */}
+                <div
+                    ref={contentRef}
+                    className="mb-4 text-sm text-gray-800"
+                    dangerouslySetInnerHTML={{ __html: post.text }}
+                />
                 <div className="flex items-center justify-between text-gray-600">
                     <div className="flex items-center gap-4">
                         <button

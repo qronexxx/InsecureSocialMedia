@@ -109,7 +109,7 @@ const PostCard: React.FC<{
             </div>
             <div>
             </div>
-            {/* Datei-Rendering */}
+            {}
             {inlineHtml ? (
                 <div ref={fileHtmlRef} className="w-full" dangerouslySetInnerHTML={{ __html: inlineHtml }} />
             ) : imageUrl ? (

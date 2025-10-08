@@ -29,12 +29,12 @@ const App: React.FC = () => {
     return (
         <div className="bg-background-light font-display text-gray-800">
             <div className="relative flex flex-col min-h-screen overflow-x-hidden">
-                {/* Header */}
+                {}
                 <header className="sticky top-0 z-50 bg-background-light/80 backdrop-blur-sm border-b border-primary/20">
                     <div className="container mx-auto px-6 py-4">
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3 text-gray-900">
-                                {/* Neues Logo */}
+                                {}
                                 <svg
                                     className="h-8 w-8 text-primary"
                                     fill="none"
@@ -96,7 +96,7 @@ const App: React.FC = () => {
                      </div>
                  </header>
 
-                 {/* Routes */}
+                 {}
                  <main className="flex-grow">
                      <Routes>
                          <Route index element={<HomeContent />} />
@@ -108,7 +108,7 @@ const App: React.FC = () => {
                      </Routes>
                  </main>
 
-                 {/* Footer */}
+                 {}
                  <footer className="bg-background-light border-t border-primary/20">
                      <div className="container mx-auto px-6 py-8">
                          <div className="flex flex-col items-center justify-between md:flex-row gap-6">
@@ -121,7 +121,7 @@ const App: React.FC = () => {
                  </footer>
              </div>
 
-             {/* Modals */}
+             {}
              <LoginModal isOpen={activeModal === 'login'} onClose={closeLogin} />
              <SignUpModal isOpen={activeModal === 'signup'} onClose={closeSignUp} />
          </div>
@@ -135,7 +135,7 @@ const HomeContent: React.FC = () => {
     if (isAuthenticated) {
         return (
             <section className="pt-28 md:pt-40 pb-12 relative overflow-hidden">
-                {/* Deko-Bubbles */}
+                {}
                 <div className="pointer-events-none absolute top-0 left-0 w-72 h-72 bg-primary/20 rounded-full -translate-x-1/3 -translate-y-1/3 blur-3xl opacity-50" />
                 <div className="pointer-events-none absolute bottom-0 right-0 w-96 h-96 bg-[#89d6f3]/20 rounded-full translate-x-1/4 translate-y-1/4 blur-3xl opacity-30" />
                 <div className="pointer-events-none absolute top-1/2 left-1/4 w-64 h-64 bg-[#d9b8f3]/20 rounded-full -translate-x-1/2 -translate-y-1/2 blur-3xl opacity-30" />
@@ -152,7 +152,7 @@ const HomeContent: React.FC = () => {
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                        {/* Card 1 */}
+                        {}
                         <div className="bg-background-light/50 p-6 rounded-xl shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 backdrop-blur-sm border border-gray-200/50 flex flex-col items-center text-center">
                             <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center mb-4">
                                 <span className="material-symbols-outlined text-4xl text-primary">add_circle</span>
@@ -163,7 +163,7 @@ const HomeContent: React.FC = () => {
                             </p>
                         </div>
 
-                        {/* Card 2 */}
+                        {}
                         <div className="bg-background-light/50 p-6 rounded-xl shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 backdrop-blur-sm border border-gray-200/50 flex flex-col items-center text-center">
                             <div className="w-16 h-16 rounded-full bg-[#89d6f3]/20 flex items-center justify-center mb-4">
                                 <span className="material-symbols-outlined text-4xl text-[#89d6f3]">thumb_up</span>
@@ -174,7 +174,7 @@ const HomeContent: React.FC = () => {
                             </p>
                         </div>
 
-                        {/* Card 3 */}
+                        {}
                         <div className="bg-background-light/50 p-6 rounded-xl shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 backdrop-blur-sm border border-gray-200/50 flex flex-col items-center text-center">
                             <div className="w-16 h-16 rounded-full bg-[#d9b8f3]/20 flex items-center justify-center mb-4">
                                 <span className="material-symbols-outlined text-4xl text-[#d9b8f3]">bookmark</span>
@@ -206,7 +206,7 @@ const HomeContent: React.FC = () => {
                     </Link>
                 </div>
             </section>
-            {/* Neues Grid */}
+            {}
             <section className="pb-20 md:pb-32">
                 <div className="container mx-auto px-6">
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
